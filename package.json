@@ -1,0 +1,17 @@
+{
+  "name": "simple-task-manager-2-elm",
+  "version": "1.0.0",
+  "scripts": {
+    "elm-app": "elm-app",
+    "start": "elm-app start",
+    "build": "elm-app build",
+    "test": "elm-app test"
+  },
+  "dependencies": {
+    "create-elm-app": "^5.22.0",
+    "postcss": "8.3.11",
+    "postcss-loader": "4.3.0",
+    "sass": "1.43.3",
+    "sass-loader": "10.1.1"
+  }
+}
