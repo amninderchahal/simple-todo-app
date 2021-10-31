@@ -1,5 +1,5 @@
 {
-  "name": "simple-task-manager-2-elm",
+  "name": "simple-todo-app",
   "version": "1.0.0",
   "scripts": {
     "elm-app": "elm-app",

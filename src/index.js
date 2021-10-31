@@ -1,4 +1,4 @@
-import './styles/main.scss';
+import '../public/styles/main.scss';
 import { Elm } from './Main.elm';
 import * as serviceWorker from './serviceWorker';
 

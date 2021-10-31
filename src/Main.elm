@@ -1,10 +1,13 @@
 module Main exposing (..)
 
-import Browser
-import Html exposing (Html, a, div, h1, img, nav, span, text)
-import Html.Attributes exposing (class, href, id, src, width)
-import Html.Attributes.Aria exposing (ariaExpanded, ariaHidden, ariaLabel, role)
-import Html.Events exposing (onClick)
+import Browser exposing (Document, UrlRequest)
+import Browser.Navigation as Nav
+import Html exposing (Html, div, h3, text)
+import Layout.Navbar as Navbar
+import Page.Task as TaskPage
+import Page.TaskList as TaskListPage
+import Route exposing (Route)
+import Url exposing (Url)
 
 
 
@@ -12,13 +15,61 @@ import Html.Events exposing (onClick)
 
 
 type alias Model =
-    { isMenuOpen : Bool
+    { navbarModel : Navbar.Model
+    , route : Route
+    , page : Page
+    , navKey : Nav.Key
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( { isMenuOpen = False }, Cmd.none )
+type Page
+    = NotFoundPage
+    | TaskListPage TaskListPage.Model
+    | TaskPage TaskPage.Model
+
+
+
+-- | TaskPage Int
+
+
+init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init _ url navKey =
+    let
+        model =
+            { navbarModel = Navbar.init
+            , route = Route.parseUrl url
+            , page = NotFoundPage
+            , navKey = navKey
+            }
+    in
+    initCurrentPage ( model, Cmd.none )
+
+
+initCurrentPage : ( Model, Cmd Msg ) -> ( Model, Cmd Msg )
+initCurrentPage ( model, existingCmds ) =
+    let
+        ( currentPage, mappedPageCmds ) =
+            case model.route of
+                Route.NotFound ->
+                    ( NotFoundPage, Cmd.none )
+
+                Route.Tasks ->
+                    let
+                        ( pageModel, pageCmds ) =
+                            TaskListPage.init
+                    in
+                    ( TaskListPage pageModel, Cmd.map TaskListPageMsg pageCmds )
+
+                Route.Task id ->
+                    let
+                        ( pageModel, _ ) =
+                            TaskPage.init id
+                    in
+                    ( TaskPage pageModel, Cmd.none )
+    in
+    ( { model | page = currentPage }
+    , Cmd.batch [ existingCmds, mappedPageCmds ]
+    )
 
 
 
@@ -26,52 +77,91 @@ init =
 
 
 type Msg
-    = ToggleMenu
+    = ToggleMenu Navbar.Msg
+    | TaskListPageMsg TaskListPage.Msg
+    | LinkClicked UrlRequest
+    | UrlChanged Url
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ToggleMenu ->
-            ( { model | isMenuOpen = not model.isMenuOpen }, Cmd.none )
+        ToggleMenu navbarMsg ->
+            ( { model | navbarModel = Navbar.update navbarMsg model.navbarModel }, Cmd.none )
+
+        LinkClicked urlRequest ->
+            case urlRequest of
+                Browser.Internal url ->
+                    ( model
+                    , Nav.pushUrl model.navKey (Url.toString url)
+                    )
+
+                Browser.External "" ->
+                    ( model, Cmd.none )
+
+                Browser.External url ->
+                    ( model
+                    , Nav.load url
+                    )
+
+        UrlChanged url ->
+            let
+                newRoute =
+                    Route.parseUrl url
+            in
+            ( { model | route = newRoute }, Cmd.none )
+                |> initCurrentPage
+
+        TaskListPageMsg taskListPageMsg ->
+            case model.page of
+                TaskListPage pageModel ->
+                    let
+                        ( updatedPageModel, updatedCmd ) =
+                            TaskListPage.update taskListPageMsg pageModel
+                    in
+                    ( { model | page = TaskListPage updatedPageModel }
+                    , Cmd.map TaskListPageMsg updatedCmd
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
 
 
 
 ---- VIEW ----
 
 
-view : Model -> Html Msg
+view : Model -> Document Msg
 view model =
-    div
-        []
-        [ nav [ class "navbar is-info", role "navigation", ariaLabel "main navigation" ]
-            [ div [ class "navbar-brand" ]
-                [ a [ class "navbar-item", href "#" ]
-                    [ img [ src "/images/brand/original/favicon-32x32.png" ] []
-                    , span [ class "has-text-weight-bold pl-2" ] [ text "Simple Task Manager" ]
-                    ]
-                , a [ role "button", class ("navbar-burger" ++ getActiveClass model.isMenuOpen), ariaLabel "menu", ariaExpanded "false", onClick ToggleMenu ]
-                    (List.repeat 3 (span [ ariaHidden True ] []))
-                ]
-            , div
-                [ class ("navbar-menu pl-5 " ++ getActiveClass model.isMenuOpen)
-                ]
-                [ div [ class "navbar-start" ]
-                    [ a [ class "navbar-item" ] [ text "Home" ]
-                    ]
-                ]
+    { title = "Post App"
+    , body =
+        [ div
+            []
+            [ Navbar.view model.navbarModel
+                |> Html.map ToggleMenu
+            , routePages model
             ]
-        , h1 [] [ text "Your Elm App is working!" ]
         ]
+    }
 
 
-getActiveClass : Bool -> String
-getActiveClass isActive =
-    if isActive then
-        " is-active"
+routePages : Model -> Html Msg
+routePages model =
+    case model.page of
+        NotFoundPage ->
+            notFoundView
 
-    else
-        ""
+        TaskListPage pageModel ->
+            TaskListPage.view pageModel
+                |> Html.map TaskListPageMsg
+
+        TaskPage pageModel ->
+            TaskPage.view pageModel
+
+
+notFoundView : Html msg
+notFoundView =
+    h3 [] [ text "Oops! The page you requested was not found!" ]
 
 
 
@@ -80,9 +170,11 @@ getActiveClass isActive =
 
 main : Program () Model Msg
 main =
-    Browser.element
+    Browser.application
         { view = view
-        , init = \_ -> init
+        , init = init
         , update = update
         , subscriptions = always Sub.none
+        , onUrlRequest = LinkClicked
+        , onUrlChange = UrlChanged
         }
