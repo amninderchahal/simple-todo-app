@@ -1,5 +1,18 @@
 # Simple Todo App
 
+## Setup
+
+```sh
+# Install dependencies
+$ yarn
+
+# Start dev server
+$ yarn start
+
+# Create an optimized build
+$ yarn build
+```
+
 This project is bootstrapped with [Create Elm App](https://github.com/halfzebra/create-elm-app).
 
 Below you will find some information on how to perform basic tasks.
