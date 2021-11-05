@@ -9,9 +9,16 @@
   },
   "dependencies": {
     "create-elm-app": "^5.22.0",
+    "firebase": "^9.2.0",
+    "regenerator-runtime": "^0.13.9"
+  },
+  "devDependencies": {
+    "@types/elm": "^0.19.1",
     "postcss": "8.3.11",
     "postcss-loader": "4.3.0",
     "sass": "1.43.3",
-    "sass-loader": "10.1.1"
+    "sass-loader": "10.1.1",
+    "ts-loader": "8.3.0",
+    "typescript": "^4.4.4"
   }
 }

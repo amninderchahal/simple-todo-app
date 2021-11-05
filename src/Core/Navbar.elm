@@ -1,4 +1,4 @@
-module Layout.Navbar exposing (Model, Msg(..), init, update, view)
+module Core.Navbar exposing (Model, Msg, init, update, view)
 
 import Html exposing (Html, a, div, img, nav, span, text)
 import Html.Attributes exposing (class, href, src)
@@ -7,7 +7,8 @@ import Html.Events exposing (onClick)
 
 
 type alias Model =
-    Bool
+    { isNavOpen : Bool
+    }
 
 
 type Msg
@@ -16,32 +17,32 @@ type Msg
 
 init : Model
 init =
-    False
+    { isNavOpen = False }
 
 
 update : Msg -> Model -> Model
-update msg isMenuOpen =
+update msg model =
     case msg of
         ToggleMenu ->
-            not isMenuOpen
+            { model | isNavOpen = not model.isNavOpen }
 
 
 view : Model -> Html Msg
-view isMenuOpen =
+view model =
     nav [ class "navbar is-info", role "navigation", ariaLabel "main navigation" ]
         [ div [ class "navbar-brand" ]
-            [ a [ class "navbar-item", href "#" ]
+            [ a [ class "navbar-item", href "/" ]
                 [ img [ src "/android-chrome-192x192.png" ] []
                 , span [ class "has-text-weight-bold pl-2" ] [ text "Simple Todo App" ]
                 ]
-            , a [ role "button", class ("navbar-burger" ++ getActiveClass isMenuOpen), ariaLabel "menu", ariaExpanded "false", onClick ToggleMenu ]
+            , a [ role "button", class ("navbar-burger" ++ getActiveClass model.isNavOpen), ariaLabel "menu", ariaExpanded "false", onClick ToggleMenu ]
                 (List.repeat 3 (span [ ariaHidden True ] []))
             ]
         , div
-            [ class ("navbar-menu pl-5 " ++ getActiveClass isMenuOpen)
+            [ class ("navbar-menu pl-5 " ++ getActiveClass model.isNavOpen)
             ]
             [ div [ class "navbar-start" ]
-                [ a [ class "navbar-item" ] [ text "Home" ]
+                [ a [ class "navbar-item" ] [ text "Tasks" ]
                 ]
             ]
         ]

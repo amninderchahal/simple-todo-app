@@ -1,13 +1,18 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Html exposing (Html, div, h3, text)
-import Layout.Navbar as Navbar
+import Core.Navbar as Navbar
+import Html exposing (Html, button, div, h3, text)
+import Html.Attributes exposing (type_)
+import Html.Events exposing (onClick)
 import Page.Task as TaskPage
 import Page.TaskList as TaskListPage
 import Route exposing (Route)
 import Url exposing (Url)
+
+
+port signIn : () -> Cmd msg
 
 
 
@@ -77,16 +82,17 @@ initCurrentPage ( model, existingCmds ) =
 
 
 type Msg
-    = ToggleMenu Navbar.Msg
+    = NavbarMsg Navbar.Msg
     | TaskListPageMsg TaskListPage.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
+    | LogIn
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        ToggleMenu navbarMsg ->
+        NavbarMsg navbarMsg ->
             ( { model | navbarModel = Navbar.update navbarMsg model.navbarModel }, Cmd.none )
 
         LinkClicked urlRequest ->
@@ -126,6 +132,9 @@ update msg model =
                 _ ->
                     ( model, Cmd.none )
 
+        LogIn ->
+            ( model, signIn () )
+
 
 
 ---- VIEW ----
@@ -133,13 +142,14 @@ update msg model =
 
 view : Model -> Document Msg
 view model =
-    { title = "Post App"
+    { title = "Simple Todo App"
     , body =
         [ div
             []
             [ Navbar.view model.navbarModel
-                |> Html.map ToggleMenu
+                |> Html.map NavbarMsg
             , routePages model
+            , button [ onClick LogIn, type_ "button" ] [ text "Login" ]
             ]
         ]
     }
