@@ -8,8 +8,7 @@
     "test": "elm-test test"
   },
   "staticFiles": {
-    "staticPath": "public/assets",
-    "staticOutPath": "assets"
+    "staticPath": "public/static"
   },
   "dependencies": {
     "elm": "^0.19.1-5",
