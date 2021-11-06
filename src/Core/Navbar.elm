@@ -32,7 +32,7 @@ view model =
     nav [ class "navbar is-info", role "navigation", ariaLabel "main navigation" ]
         [ div [ class "navbar-brand" ]
             [ a [ class "navbar-item", href "/" ]
-                [ img [ src "/android-chrome-192x192.png" ] []
+                [ img [ src "/assets/brand-icon.png" ] []
                 , span [ class "has-text-weight-bold pl-2" ] [ text "Simple Todo App" ]
                 ]
             , a [ role "button", class ("navbar-burger" ++ getActiveClass model.isNavOpen), ariaLabel "menu", ariaExpanded "false", onClick ToggleMenu ]
@@ -42,7 +42,7 @@ view model =
             [ class ("navbar-menu pl-5 " ++ getActiveClass model.isNavOpen)
             ]
             [ div [ class "navbar-start" ]
-                [ a [ class "navbar-item" ] [ text "Tasks" ]
+                [ a [ class "navbar-item", href "/tasks" ] [ text "Tasks" ]
                 ]
             ]
         ]

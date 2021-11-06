@@ -1,5 +1,3 @@
-
-
 import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithPopup, signOut, GoogleAuthProvider, onAuthStateChanged, User } from "firebase/auth";
 import { query, getFirestore, collection, addDoc, onSnapshot } from "firebase/firestore";

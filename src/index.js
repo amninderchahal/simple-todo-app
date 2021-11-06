@@ -1,6 +1,5 @@
-import '../public/styles/main.scss';
 import { Elm } from './Main.elm';
-import { setupFirebasePorts } from './firebase-interop.ts';
+import { setupFirebasePorts } from './firebase-ports.ts';
 import * as serviceWorker from './serviceWorker';
 
 const app = Elm.Main.init({
