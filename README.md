@@ -1,4 +1,5 @@
 # Simple Todo App
+A simple PWA for managing todos.
 
 ## Setup
 

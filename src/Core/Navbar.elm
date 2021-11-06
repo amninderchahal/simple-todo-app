@@ -7,7 +7,8 @@ import Html.Events exposing (onClick)
 
 
 type alias Model =
-    { isNavOpen : Bool
+    { brandIcon : String
+    , isNavOpen : Bool
     }
 
 
@@ -15,9 +16,11 @@ type Msg
     = ToggleMenu
 
 
-init : Model
-init =
-    { isNavOpen = False }
+init : String -> Model
+init brandIcon =
+    { brandIcon = brandIcon
+    , isNavOpen = False
+    }
 
 
 update : Msg -> Model -> Model
@@ -32,7 +35,7 @@ view model =
     nav [ class "navbar is-info", role "navigation", ariaLabel "main navigation" ]
         [ div [ class "navbar-brand" ]
             [ a [ class "navbar-item", href "/" ]
-                [ img [ src "/assets/brand-icon.png" ] []
+                [ img [ src model.brandIcon ] []
                 , span [ class "has-text-weight-bold pl-2" ] [ text "Simple Todo App" ]
                 ]
             , a [ role "button", class ("navbar-burger" ++ getActiveClass model.isNavOpen), ariaLabel "menu", ariaExpanded "false", onClick ToggleMenu ]

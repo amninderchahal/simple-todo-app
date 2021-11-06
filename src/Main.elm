@@ -20,7 +20,8 @@ port signIn : () -> Cmd msg
 
 
 type alias Model =
-    { navbarModel : Navbar.Model
+    { flags : Flags
+    , navbarModel : Navbar.Model
     , route : Route
     , page : Page
     , navKey : Nav.Key
@@ -33,15 +34,20 @@ type Page
     | TaskPage TaskPage.Model
 
 
+type alias Flags =
+    { brandIcon : String }
+
+
 
 -- | TaskPage Int
 
 
-init : () -> Url -> Nav.Key -> ( Model, Cmd Msg )
-init _ url navKey =
+init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
+init flags url navKey =
     let
         model =
-            { navbarModel = Navbar.init
+            { flags = flags
+            , navbarModel = Navbar.init flags.brandIcon
             , route = Route.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
@@ -178,7 +184,7 @@ notFoundView =
 ---- PROGRAM ----
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.application
         { view = view
