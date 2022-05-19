@@ -1,4 +1,4 @@
-@import 'bulma/bulma.sass';
+@import 'navbar';
 
 /*
   elm-hot creates an additional div wrapper around the app to make HMR possible.
@@ -8,5 +8,10 @@
     https://github.com/halfzebra/create-elm-app/issues/320
 */
 [data-elm-hot="true"] {
-    height: inherit;
+  height: inherit;
 }
+
+html, body {
+  height: 100%;
+}
+

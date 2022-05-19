@@ -24,6 +24,6 @@ matchRoute : Parser (Route -> a) a
 matchRoute =
     oneOf
         [ map Tasks top
-        , map Tasks (s "tasks")
-        , map Task (s "tasks" </> int)
+        , map Tasks (s "task")
+        , map Task (s "task" </> int)
         ]

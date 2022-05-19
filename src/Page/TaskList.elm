@@ -49,6 +49,6 @@ view model =
 getTaskHtml : Int -> Html Msg
 getTaskHtml taskId =
     div [ class "panel-block is-flex is-justify-content-space-between px-5 py-4" ]
-        [ a [ href ("tasks/" ++ String.fromInt taskId) ] [ text ("Task " ++ String.fromInt taskId) ]
+        [ a [ href ("task/" ++ String.fromInt taskId) ] [ text ("Task " ++ String.fromInt taskId) ]
         , button [ class "delete", onClick (DeleteTask taskId) ] [ text "Delete" ]
         ]

@@ -2,10 +2,11 @@ port module Main exposing (..)
 
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
-import Core.Navbar as Navbar
-import Html exposing (Html, button, div, h3, text)
-import Html.Attributes exposing (type_)
+import Html exposing (..)
+import Html.Attributes exposing (class, href, src, type_)
+import Html.Attributes.Aria exposing (ariaExpanded, ariaLabel, role)
 import Html.Events exposing (onClick)
+import Html.Events.Extra exposing (onClickPreventDefault)
 import Page.Task as TaskPage
 import Page.TaskList as TaskListPage
 import Route exposing (Route)
@@ -21,7 +22,8 @@ port signIn : () -> Cmd msg
 
 type alias Model =
     { flags : Flags
-    , navbarModel : Navbar.Model
+    , userData : Maybe UserData
+    , isDrawerOpen : Bool
     , route : Route
     , page : Page
     , navKey : Nav.Key
@@ -38,6 +40,18 @@ type alias Flags =
     { brandIcon : String }
 
 
+type alias MessageContent =
+    { uid : String, content : String }
+
+
+type alias ErrorData =
+    { code : Maybe String, message : Maybe String, credential : Maybe String }
+
+
+type alias UserData =
+    { token : String, email : String, uid : String }
+
+
 
 -- | TaskPage Int
 
@@ -47,7 +61,8 @@ init flags url navKey =
     let
         model =
             { flags = flags
-            , navbarModel = Navbar.init flags.brandIcon
+            , userData = Maybe.Nothing
+            , isDrawerOpen = False
             , route = Route.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
@@ -88,7 +103,7 @@ initCurrentPage ( model, existingCmds ) =
 
 
 type Msg
-    = NavbarMsg Navbar.Msg
+    = ToggleDrawer
     | TaskListPageMsg TaskListPage.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
@@ -98,8 +113,8 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NavbarMsg navbarMsg ->
-            ( { model | navbarModel = Navbar.update navbarMsg model.navbarModel }, Cmd.none )
+        ToggleDrawer ->
+            ( { model | isDrawerOpen = not model.isDrawerOpen }, Cmd.none )
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -150,15 +165,41 @@ view : Model -> Document Msg
 view model =
     { title = "Simple Todo App"
     , body =
-        [ div
-            []
-            [ Navbar.view model.navbarModel
-                |> Html.map NavbarMsg
-            , routePages model
-            , button [ onClick LogIn, type_ "button" ] [ text "Login" ]
+        [ div [ class "h-full flex" ]
+            [ drawer model
+            , div [ class ("drawer-backdrop md:hidden fixed inset-x-0 top-0 bg-black" ++ getDrawerClass model.isDrawerOpen), onClick ToggleDrawer ] []
+            , div [ class "h-full flex-grow overflow-scroll" ]
+                [ nav [ class "grid justify-items-start bg-green-500", role "navigation", ariaLabel "main navigation" ]
+                    [ a [ class "md:hidden px-3 text-2xl text-gray-100 leading-loose", ariaLabel "menu", ariaExpanded "false", onClickPreventDefault ToggleDrawer ]
+                        [ span [ class "fas fa-bars" ] [] ]
+                    ]
+                , div [ class "main-content" ]
+                    [ routePages model
+                    , button [ onClick LogIn, type_ "button" ] [ text "Login" ]
+                    ]
+                ]
             ]
         ]
     }
+
+
+drawer : Model -> Html Msg
+drawer model =
+    div [ class ("drawer fixed md:static h-full left-0 bg-white border-r border-gray-100" ++ getDrawerClass model.isDrawerOpen) ]
+        [ div [ class "brand-wrapper bg-green-500 pl-6 flex items-center" ]
+            [ a [ class "brand", href "/" ]
+                [ img [ class "", src model.flags.brandIcon ] [] ]
+            ]
+        ]
+
+
+getDrawerClass : Bool -> String
+getDrawerClass isActive =
+    if isActive then
+        " open"
+
+    else
+        ""
 
 
 routePages : Model -> Html Msg
