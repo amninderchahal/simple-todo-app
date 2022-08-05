@@ -1,5 +1,8 @@
-port module Main exposing (..)
+port module App.Main exposing (..)
 
+import App.Page.Task as TaskPage
+import App.Page.TaskList as TaskListPage
+import App.Routes as Routes exposing (Route)
 import Browser exposing (Document, UrlRequest)
 import Browser.Navigation as Nav
 import Html exposing (..)
@@ -7,13 +10,16 @@ import Html.Attributes exposing (class, href, src, type_)
 import Html.Attributes.Aria exposing (ariaExpanded, ariaLabel, role)
 import Html.Events exposing (onClick)
 import Html.Events.Extra exposing (onClickPreventDefault)
-import Page.Task as TaskPage
-import Page.TaskList as TaskListPage
-import Route exposing (Route)
 import Url exposing (Url)
 
 
 port signIn : () -> Cmd msg
+
+
+port signOut : () -> Cmd msg
+
+
+port signInInfo : (Maybe AuthUser -> msg) -> Sub msg
 
 
 
@@ -22,7 +28,7 @@ port signIn : () -> Cmd msg
 
 type alias Model =
     { flags : Flags
-    , userData : Maybe UserData
+    , authUser : Maybe AuthUser
     , isDrawerOpen : Bool
     , route : Route
     , page : Page
@@ -48,12 +54,12 @@ type alias ErrorData =
     { code : Maybe String, message : Maybe String, credential : Maybe String }
 
 
-type alias UserData =
-    { token : String, email : String, uid : String }
-
-
-
--- | TaskPage Int
+type alias AuthUser =
+    { uid : String
+    , email : String
+    , displayName : String
+    , photoURL : String
+    }
 
 
 init : Flags -> Url -> Nav.Key -> ( Model, Cmd Msg )
@@ -61,9 +67,9 @@ init flags url navKey =
     let
         model =
             { flags = flags
-            , userData = Maybe.Nothing
+            , authUser = Maybe.Nothing
             , isDrawerOpen = False
-            , route = Route.parseUrl url
+            , route = Routes.parseUrl url
             , page = NotFoundPage
             , navKey = navKey
             }
@@ -76,17 +82,17 @@ initCurrentPage ( model, existingCmds ) =
     let
         ( currentPage, mappedPageCmds ) =
             case model.route of
-                Route.NotFound ->
+                Routes.NotFound ->
                     ( NotFoundPage, Cmd.none )
 
-                Route.Tasks ->
+                Routes.Tasks ->
                     let
                         ( pageModel, pageCmds ) =
                             TaskListPage.init
                     in
                     ( TaskListPage pageModel, Cmd.map TaskListPageMsg pageCmds )
 
-                Route.Task id ->
+                Routes.Task id ->
                     let
                         ( pageModel, _ ) =
                             TaskPage.init id
@@ -108,6 +114,8 @@ type Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
     | LogIn
+    | LogOut
+    | SignInInfoReceived (Maybe AuthUser)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -134,7 +142,7 @@ update msg model =
         UrlChanged url ->
             let
                 newRoute =
-                    Route.parseUrl url
+                    Routes.parseUrl url
             in
             ( { model | route = newRoute }, Cmd.none )
                 |> initCurrentPage
@@ -156,6 +164,12 @@ update msg model =
         LogIn ->
             ( model, signIn () )
 
+        LogOut ->
+            ( model, signOut () )
+
+        SignInInfoReceived authUser ->
+            ( { model | authUser = authUser }, Cmd.none )
+
 
 
 ---- VIEW ----
@@ -175,7 +189,16 @@ view model =
                     ]
                 , div [ class "main-content" ]
                     [ routePages model
-                    , button [ onClick LogIn, type_ "button" ] [ text "Login" ]
+                    , case model.authUser of
+                        Maybe.Nothing ->
+                            button [ onClick LogIn, type_ "button" ] [ text "Login" ]
+
+                        Just authUser ->
+                            div []
+                                [ div []
+                                    [ text ("Hello " ++ authUser.displayName) ]
+                                , button [ onClick LogOut, type_ "button" ] [ text "Log out" ]
+                                ]
                     ]
                 ]
             ]
@@ -222,6 +245,15 @@ notFoundView =
 
 
 
+---- SUBSCRIPTIONS ----
+
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    signInInfo SignInInfoReceived
+
+
+
 ---- PROGRAM ----
 
 
@@ -231,7 +263,7 @@ main =
         { view = view
         , init = init
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         , onUrlRequest = LinkClicked
         , onUrlChange = UrlChanged
         }

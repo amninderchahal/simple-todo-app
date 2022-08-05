@@ -1,4 +1,4 @@
-module Page.TaskList exposing (Model, Msg, init, update, view)
+module App.Page.TaskList exposing (Model, Msg, init, update, view)
 
 import Html exposing (Html, a, button, div, text)
 import Html.Attributes exposing (class, href)

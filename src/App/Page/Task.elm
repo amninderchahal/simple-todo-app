@@ -1,4 +1,4 @@
-module Page.Task exposing (Model, init, update, view)
+module App.Page.Task exposing (Model, init, update, view)
 
 import Html exposing (Html, div, text)
 

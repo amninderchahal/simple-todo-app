@@ -1,12 +1,12 @@
-import { Elm } from './Main.elm';
-import { setupFirebasePorts } from './firebase-ports.ts';
+import { Elm } from './App/Main.elm';
+import { setupFirebasePorts } from './firebase/firebase-ports.ts';
 import * as brandIcon from '../public/android-chrome-192x192.png';
 
 const flags = {
   brandIcon
 };
 
-const app = Elm.Main.init({
+const app = Elm.App.Main.init({
   node: document.getElementById('root'),
   flags
 });

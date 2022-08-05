@@ -9,10 +9,11 @@ interface PortsFromElm {
 
 interface PortsToElm {
     signInInfo: PortToElm<{
-        token: string,
+        uid: string,
         email: string | null,
-        uid: string
-    }>;
+        displayName: string | null,
+        photoURL: string | null
+    } | null>;
     signInError: PortToElm<{
         code: number,
         message: string
@@ -40,7 +41,6 @@ function setUpSignInPort(app: App): void {
     app.ports.signIn.subscribe(() => {
         console.log("LogIn called");
         signInWithPopup(auth, provider)
-            .then(result => propagateAuthUser(app, result.user))
             .catch(error => {
                 app.ports.signInError.send({
                     code: error.code,
@@ -57,29 +57,12 @@ function setUpSignOutPort(app: App): void {
     });
 }
 
-function propagateAuthUser(app: App, user: User): void {
-    console.log("Auth user received");
-    user.getIdToken()
-        .then(idToken => {
-            app.ports.signInInfo.send({
-                token: idToken,
-                email: user.email,
-                uid: user.uid
-            });
-        })
-        .catch(error => {
-            console.log("Error when retrieving cached user");
-            console.log(error);
-        });
-}
-
 function setUpAuthChangedPort(app: App): void {
     onAuthStateChanged(auth, user => {
-        console.log("Auth changed");
-        if (user) {
-            propagateAuthUser(app, user);
+        console.log('Auth changed', user);
+        app.ports.signInInfo.send(user);
 
-            /* // Set up listened on new messages
+/* // Set up listened on new messages
             const q = query(collection(db, `users/${user.uid}/messages`));
             onSnapshot(q, querySnapshot => {
                 console.log("Received new snapshot");
@@ -95,12 +78,12 @@ function setUpAuthChangedPort(app: App): void {
                     messages: messages
                 });
             }); */
-        }
     });
 }
 
 export function setupFirebasePorts(app: App): void {
-    setUpSignInPort(app);
-    // setUpSignOutPort(app);
     setUpAuthChangedPort(app);
+    setUpSignInPort(app);
+    setUpSignOutPort(app);
 }
+
