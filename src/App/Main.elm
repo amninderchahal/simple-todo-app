@@ -110,6 +110,7 @@ initCurrentPage ( model, existingCmds ) =
 
 type Msg
     = ToggleDrawer
+    | CloseDrawer
     | TaskListPageMsg TaskListPage.Msg
     | LinkClicked UrlRequest
     | UrlChanged Url
@@ -123,6 +124,9 @@ update msg model =
     case msg of
         ToggleDrawer ->
             ( { model | isDrawerOpen = not model.isDrawerOpen }, Cmd.none )
+
+        CloseDrawer ->
+            ( { model | isDrawerOpen = False }, Cmd.none )
 
         LinkClicked urlRequest ->
             case urlRequest of
@@ -210,7 +214,7 @@ drawer : Model -> Html Msg
 drawer model =
     div [ class ("drawer fixed md:static h-full left-0 bg-white border-r border-gray-100" ++ getDrawerClass model.isDrawerOpen) ]
         [ div [ class "brand-wrapper bg-green-500 pl-6 flex items-center" ]
-            [ a [ class "brand", href "/" ]
+            [ a [ class "brand", href "/", onClick CloseDrawer ]
                 [ img [ class "", src model.flags.brandIcon ] [] ]
             ]
         ]
